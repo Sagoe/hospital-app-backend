@@ -30,12 +30,10 @@ app = FastAPI(
     redoc_url="/api/redoc" if not settings.is_production else None,
 )
 
-# NOTE: replace with the exact frontend origin(s) in production — a
-# wildcard is not appropriate for an app handling PHI and session cookies.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=(
-        ["https://your-production-domain.example.com"]
+        ["https://medicare-frontend.vercel.app"]
         if settings.is_production
         else ["http://localhost:3000"]
     ),
