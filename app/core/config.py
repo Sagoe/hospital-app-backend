@@ -1,14 +1,8 @@
 """
 Global application configuration.
-
-Loaded once at process startup via `get_settings()` (LRU-cached so the
-.env file is parsed exactly once). All other modules must import
-settings from here rather than reading os.environ directly, so that
-type validation and defaults are enforced in a single place.
+...
 """
-
 from functools import lru_cache
-
 from pydantic import Field, PostgresDsn, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -24,6 +18,13 @@ class Settings(BaseSettings):
     # --- Runtime ---
     PORT: int = Field(default=8000)
     NODE_ENV: str = Field(default="development")
+
+    # --- CORS ---
+    # Comma-separated list, e.g.:
+    # CORS_ALLOWED_ORIGINS=https://medicare-frontend.vercel.app,https://app.medicare.com
+    CORS_ALLOWED_ORIGINS: str = Field(default="http://localhost:3000")
+    # Optional regex for preview deployments, e.g. Vercel branch previews
+    CORS_ALLOWED_ORIGIN_REGEX: str | None = Field(default=None)
 
     # --- Database ---
     DATABASE_URL: str
@@ -55,6 +56,10 @@ class Settings(BaseSettings):
     @property
     def is_production(self) -> bool:
         return self.NODE_ENV.lower() == "production"
+
+    @property
+    def cors_origins_list(self) -> list[str]:
+        return [origin.strip() for origin in self.CORS_ALLOWED_ORIGINS.split(",") if origin.strip()]
 
 
 @lru_cache
