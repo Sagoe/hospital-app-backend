@@ -31,6 +31,9 @@ from app.schemas.patient import (
 from app.schemas.user import UserRead
 from app.services.auth_service import AuthService
 from app.services.patient_service import PatientNotFoundError, PatientService
+from app.schemas.patient import PatientIntakeCreate  # add alongside existing patient schema imports
+from app.schemas.user import UserCreate, UserRead
+from app.services.auth_service import AuthError, AuthService
 
 router = APIRouter(prefix="/api/v1/patients", tags=["patients"])
 
@@ -226,3 +229,24 @@ async def assign_doctor_to_patient(
         )
     except PatientNotFoundError as exc:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+    
+@router.post(
+    "/staff-intake",
+    response_model=PatientProfileRead,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(require_role(UserRole.RECEPTIONIST, UserRole.ADMIN))],
+)
+async def create_patient_intake(
+    payload: PatientIntakeCreate,
+    auth_service: AuthService = Depends(get_auth_service),
+    patient_service: PatientService = Depends(get_patient_service),
+) -> PatientProfileRead:
+    try:
+        user = await auth_service.register_staff(
+            UserCreate(email=payload.email, password=payload.password, role=UserRole.PATIENT)
+        )
+    except AuthError as exc:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
+
+    base_payload = PatientProfileCreate(**payload.model_dump(exclude={"email", "password"}))
+    return await patient_service.create_profile(user.userId, base_payload)

@@ -15,6 +15,8 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from app.models.enums import BloodType, Gender
 
+from pydantic import EmailStr
+
 
 class PatientProfileBase(BaseModel):
     firstName: str = Field(min_length=1, max_length=100)
@@ -63,3 +65,7 @@ class PatientAssignDoctorRequest(BaseModel):
 
 class PatientProfileCreateByStaff(PatientProfileCreate):
     userId: uuid.UUID
+
+class PatientIntakeCreate(PatientProfileCreate):
+    email: EmailStr
+    password: str = Field(min_length=12, max_length=128)
