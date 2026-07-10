@@ -206,4 +206,6 @@ class PatientService:
             nationalId=plaintext_national_id,
             insuranceProvider=patient.insuranceProvider,
             insurancePolicyNumber=patient.insurancePolicyNumber,
+            assignedNurseId=patient.assignedNurseId,
+            assignedDoctorId=patient.assignedDoctorId,
         )
