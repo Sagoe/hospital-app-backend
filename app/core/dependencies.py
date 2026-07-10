@@ -23,15 +23,19 @@ from app.repositories.appointment_repository import AppointmentRepository
 from app.repositories.audit_log_repository import AuditLogRepository
 from app.repositories.doctor_repository import DoctorRepository
 from app.repositories.patient_repository import PatientRepository
+from app.repositories.prescription_repository import PrescriptionRepository
 from app.repositories.user_repository import UserRepository
 from app.repositories.clinical_encounter_repository import ClinicalEncounterRepository
+from app.repositories.vitals_repository import VitalsRepository
 from app.services.appointment_service import AppointmentService
 from app.services.audit_service import AuditService
 from app.services.auth_service import AuthService
 from app.services.clinical_encounter_service import ClinicalEncounterService
 from app.services.doctor_service import DoctorService
 from app.services.patient_service import PatientService
+from app.services.prescription_service import PrescriptionService
 from app.services.telehealth_service import TelehealthService
+from app.services.vitals_service import VitalsService
 
 _oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
@@ -69,6 +73,14 @@ def get_encounter_repository(session: DbSession) -> ClinicalEncounterRepository:
 
 def get_audit_log_repository(session: DbSession) -> AuditLogRepository:
     return AuditLogRepository(session)
+
+
+def get_prescription_repository(session: DbSession) -> PrescriptionRepository:
+    return PrescriptionRepository(session)
+
+
+def get_vitals_repository(session: DbSession) -> VitalsRepository:
+    return VitalsRepository(session)
 
 
 # --- Cross-cutting services ---
@@ -119,10 +131,27 @@ def get_appointment_service(
 
 def get_encounter_service(
     encounter_repository: Annotated[ClinicalEncounterRepository, Depends(get_encounter_repository)],
+    prescription_repository: Annotated[PrescriptionRepository, Depends(get_prescription_repository)],
     encryption_service: Annotated[FieldEncryptionService, Depends(get_encryption_service_dep)],
     audit_service: Annotated[AuditService, Depends(get_audit_service)],
 ) -> ClinicalEncounterService:
-    return ClinicalEncounterService(encounter_repository, encryption_service, audit_service)
+    return ClinicalEncounterService(
+        encounter_repository, prescription_repository, encryption_service, audit_service
+    )
+
+
+def get_prescription_service(
+    prescription_repository: Annotated[PrescriptionRepository, Depends(get_prescription_repository)],
+    audit_service: Annotated[AuditService, Depends(get_audit_service)],
+) -> PrescriptionService:
+    return PrescriptionService(prescription_repository, audit_service)
+
+
+def get_vitals_service(
+    vitals_repository: Annotated[VitalsRepository, Depends(get_vitals_repository)],
+    audit_service: Annotated[AuditService, Depends(get_audit_service)],
+) -> VitalsService:
+    return VitalsService(vitals_repository, audit_service)
 
 
 # --- Auth guards ---

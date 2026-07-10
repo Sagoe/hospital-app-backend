@@ -11,7 +11,9 @@ from app.models.audit_log import AuditLog  # noqa: F401
 from app.models.clinical_encounter import ClinicalEncounter  # noqa: F401
 from app.models.doctor import DoctorProfile  # noqa: F401
 from app.models.patient import PatientProfile  # noqa: F401
+from app.models.prescription import Prescription  # noqa: F401
 from app.models.user import User  # noqa: F401
+from app.models.vital_signs import VitalSigns  # noqa: F401
 
 __all__ = [
     "Base",
@@ -20,5 +22,7 @@ __all__ = [
     "DoctorProfile",
     "Appointment",
     "ClinicalEncounter",
+    "Prescription",
+    "VitalSigns",
     "AuditLog",
 ]

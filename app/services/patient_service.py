@@ -122,6 +122,67 @@ class PatientService:
 
         return self._to_read_schema(updated, plaintext_national_id)
 
+    async def assign_nurse(
+        self, patient_id: uuid.UUID, nurse_user_id: uuid.UUID, requesting_user_id: uuid.UUID, ip_address: str
+    ) -> PatientProfileRead:
+        patient = await self._patient_repository.get_by_id(patient_id)
+        if patient is None:
+            raise PatientNotFoundError(f"Patient {patient_id} not found.")
+
+        updated = await self._patient_repository.assign_nurse(patient, nurse_user_id)
+        plaintext_national_id = self._encryption_service.decrypt(updated.encryptedNationalId)
+
+        await self._audit_service.record(
+            performed_by_user_id=requesting_user_id,
+            action_type=AuditActionType.WRITE_PHI,
+            target_record_id=updated.patientId,
+            target_table="patient_profiles",
+            ip_address=ip_address,
+        )
+
+        return self._to_read_schema(updated, plaintext_national_id)
+
+    async def assign_doctor(
+        self, patient_id: uuid.UUID, doctor_user_id: uuid.UUID, requesting_user_id: uuid.UUID, ip_address: str
+    ) -> PatientProfileRead:
+        patient = await self._patient_repository.get_by_id(patient_id)
+        if patient is None:
+            raise PatientNotFoundError(f"Patient {patient_id} not found.")
+
+        updated = await self._patient_repository.assign_doctor(patient, doctor_user_id)
+        plaintext_national_id = self._encryption_service.decrypt(updated.encryptedNationalId)
+
+        await self._audit_service.record(
+            performed_by_user_id=requesting_user_id,
+            action_type=AuditActionType.WRITE_PHI,
+            target_record_id=updated.patientId,
+            target_table="patient_profiles",
+            ip_address=ip_address,
+        )
+
+        return self._to_read_schema(updated, plaintext_national_id)
+
+    async def list_for_nurse(self, nurse_user_id: uuid.UUID) -> list[PatientProfileRead]:
+        patients = await self._patient_repository.list_by_assigned_nurse(nurse_user_id)
+        return [
+            self._to_read_schema(p, self._encryption_service.decrypt(p.encryptedNationalId))
+            for p in patients
+        ]
+
+    async def list_for_doctor(self, doctor_user_id: uuid.UUID) -> list[PatientProfileRead]:
+        patients = await self._patient_repository.list_by_assigned_doctor(doctor_user_id)
+        return [
+            self._to_read_schema(p, self._encryption_service.decrypt(p.encryptedNationalId))
+            for p in patients
+        ]
+
+    async def list_unassigned_to_nurse(self) -> list[PatientProfileRead]:
+        patients = await self._patient_repository.list_unassigned_to_nurse()
+        return [
+            self._to_read_schema(p, self._encryption_service.decrypt(p.encryptedNationalId))
+            for p in patients
+        ]
+
     async def get_patient_id_for_user(self, user_id: uuid.UUID) -> uuid.UUID | None:
         """Resolves a userId to its associated patientId, used by other
         routers/services that need to check 'does this record belong to

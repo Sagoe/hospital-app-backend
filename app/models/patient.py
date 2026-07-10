@@ -37,6 +37,19 @@ class PatientProfile(Base):
     insuranceProvider: Mapped[str | None] = mapped_column(String(150), nullable=True)
     insurancePolicyNumber: Mapped[str | None] = mapped_column(String(100), nullable=True)
 
-    user: Mapped["User"] = relationship(back_populates="patient_profile")
+    # Care-team assignment chain: receptionist assigns a nurse, the nurse
+    # assigns a doctor. Nullable — a freshly-created patient has neither
+    # until reception/nursing staff act. Exactly one active nurse and one
+    # active doctor at a time; reassignment overwrites, no history kept.
+    assignedNurseId: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.userId", ondelete="SET NULL"), nullable=True
+    )
+    assignedDoctorId: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.userId", ondelete="SET NULL"), nullable=True
+    )
+
+    user: Mapped["User"] = relationship(back_populates="patient_profile", foreign_keys=[userId])
     appointments: Mapped[list["Appointment"]] = relationship(back_populates="patient")
     encounters: Mapped[list["ClinicalEncounter"]] = relationship(back_populates="patient")
+    vital_signs: Mapped[list["VitalSigns"]] = relationship(back_populates="patient")
+    prescriptions: Mapped[list["Prescription"]] = relationship(back_populates="patient")

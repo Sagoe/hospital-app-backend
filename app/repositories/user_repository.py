@@ -29,6 +29,10 @@ class UserRepository:
         result = await self._session.execute(select(User).where(User.email == email))
         return result.scalar_one_or_none()
 
+    async def list_by_role(self, role: UserRole) -> list[User]:
+        result = await self._session.execute(select(User).where(User.role == role))
+        return list(result.scalars().all())
+
     async def create(
         self,
         *,

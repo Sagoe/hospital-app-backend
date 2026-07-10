@@ -3,7 +3,12 @@ Clinical Encounter service.
 
 Mirrors PatientService's pattern: this is the only layer that holds
 plaintext diagnosis text in memory, and it is responsible for the
-READ_PHI / WRITE_PHI audit trail around clinical records.
+READ_PHI / WRITE_PHI audit trail around clinical records. It is also
+responsible for materializing each PrescriptionItem in
+prescriptionData into a relational Prescription row, which is the
+pharmacy workflow's source of truth (fulfillment status, per-patient
+querying) — prescriptionData itself remains untouched as the
+doctor-facing JSONB summary shown inline on the encounter record.
 """
 
 import uuid
@@ -12,6 +17,7 @@ from app.core.encryption import FieldEncryptionService
 from app.models.clinical_encounter import ClinicalEncounter
 from app.models.enums import AuditActionType
 from app.repositories.clinical_encounter_repository import ClinicalEncounterRepository
+from app.repositories.prescription_repository import PrescriptionRepository
 from app.schemas.clinical_encounter import (
     ClinicalEncounterCreate,
     ClinicalEncounterRead,
@@ -28,10 +34,12 @@ class ClinicalEncounterService:
     def __init__(
         self,
         encounter_repository: ClinicalEncounterRepository,
+        prescription_repository: PrescriptionRepository,
         encryption_service: FieldEncryptionService,
         audit_service: AuditService,
     ) -> None:
         self._encounter_repository = encounter_repository
+        self._prescription_repository = prescription_repository
         self._encryption_service = encryption_service
         self._audit_service = audit_service
 
@@ -50,6 +58,18 @@ class ClinicalEncounterService:
             prescription_data=[item.model_dump() for item in payload.prescriptionData],
             encrypted_diagnosis_text=encrypted_diagnosis,
         )
+
+        for item in payload.prescriptionData:
+            await self._prescription_repository.create(
+                encounter_id=encounter.encounterId,
+                patient_id=payload.patientId,
+                doctor_id=payload.doctorId,
+                medication_name=item.medicationName,
+                dosage=item.dosage,
+                frequency=item.frequency,
+                duration_days=item.durationDays,
+                instructions=item.instructions,
+            )
 
         await self._audit_service.record(
             performed_by_user_id=requesting_user_id,

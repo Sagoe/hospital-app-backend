@@ -29,3 +29,10 @@ async def create_staff_account(
     except AuthError as exc:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
     return UserRead.model_validate(user)
+
+@router.get("/users", response_model=list[UserRead])
+async def list_users_by_role(
+    role: UserRole,
+    auth_service: AuthService = Depends(get_auth_service),
+) -> list[UserRead]:
+    return [UserRead.model_validate(user) for user in await auth_service.list_users_by_role(role)]

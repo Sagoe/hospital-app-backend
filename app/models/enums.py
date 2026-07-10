@@ -12,6 +12,8 @@ class UserRole(str, enum.Enum):
     DOCTOR = "DOCTOR"
     NURSE = "NURSE"
     ADMIN = "ADMIN"
+    PHARMACIST = "PHARMACIST"
+    RECEPTIONIST = "RECEPTIONIST"
 
 
 class Gender(str, enum.Enum):
@@ -57,3 +59,9 @@ class AuditActionType(str, enum.Enum):
     WRITE_PHI = "WRITE_PHI"
     AUTH_LOGIN = "AUTH_LOGIN"
     DATA_EXPORT = "DATA_EXPORT"
+
+
+class PrescriptionStatus(str, enum.Enum):
+    PENDING = "PENDING"
+    FULFILLED = "FULFILLED"
+    CANCELLED = "CANCELLED"

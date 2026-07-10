@@ -47,3 +47,4 @@ class ClinicalEncounter(Base):
     appointment: Mapped["Appointment"] = relationship(back_populates="encounter")
     patient: Mapped["PatientProfile"] = relationship(back_populates="encounters")
     doctor: Mapped["DoctorProfile"] = relationship(back_populates="encounters")
+    prescriptions: Mapped[list["Prescription"]] = relationship(back_populates="encounter")

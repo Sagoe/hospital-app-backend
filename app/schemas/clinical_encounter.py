@@ -14,6 +14,8 @@ from pydantic import BaseModel, ConfigDict, Field
 class PrescriptionItem(BaseModel):
     medicationName: str = Field(min_length=1, max_length=200)
     dosage: str = Field(min_length=1, max_length=100)
+    frequency: str = Field(min_length=1, max_length=100)
+    durationDays: int = Field(ge=1, le=365)
     refillsAllowed: int = Field(ge=0, le=12)
     instructions: str = Field(min_length=1, max_length=1000)
 

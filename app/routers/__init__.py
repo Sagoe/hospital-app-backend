@@ -5,6 +5,8 @@ from app.routers.auth_router import router as auth_router
 from app.routers.clinical_encounter_router import router as encounter_router
 from app.routers.doctor_router import router as doctor_router
 from app.routers.patient_router import router as patient_router
+from app.routers.prescription_router import router as prescription_router
+from app.routers.vitals_router import router as vitals_router
 
 all_routers = [
     auth_router,
@@ -13,5 +15,7 @@ all_routers = [
     doctor_router,
     appointment_router,
     encounter_router,
+    prescription_router,
+    vitals_router,
     audit_router,
 ]

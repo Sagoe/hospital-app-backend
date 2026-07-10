@@ -48,4 +48,18 @@ class PatientProfileRead(PatientProfileBase):
 
     patientId: uuid.UUID
     userId: uuid.UUID
+    assignedNurseId: uuid.UUID | None
+    assignedDoctorId: uuid.UUID | None
     nationalId: str = Field(description="Decrypted plaintext, only populated for authorized callers.")
+
+
+class PatientAssignNurseRequest(BaseModel):
+    nurseUserId: uuid.UUID
+
+
+class PatientAssignDoctorRequest(BaseModel):
+    doctorUserId: uuid.UUID
+
+
+class PatientProfileCreateByStaff(PatientProfileCreate):
+    userId: uuid.UUID

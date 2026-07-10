@@ -36,7 +36,7 @@ class User(Base):
     )
 
     patient_profile: Mapped["PatientProfile | None"] = relationship(
-        back_populates="user", uselist=False, cascade="all, delete-orphan"
+        back_populates="user", uselist=False, cascade="all, delete-orphan",foreign_keys="PatientProfile.userId",
     )
     doctor_profile: Mapped["DoctorProfile | None"] = relationship(
         back_populates="user", uselist=False, cascade="all, delete-orphan"

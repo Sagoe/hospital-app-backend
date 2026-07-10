@@ -73,3 +73,33 @@ class PatientRepository:
         await self._session.flush()
         await self._session.refresh(patient)
         return patient
+
+    async def assign_nurse(self, patient: PatientProfile, nurse_user_id: uuid.UUID) -> PatientProfile:
+        patient.assignedNurseId = nurse_user_id
+        await self._session.flush()
+        await self._session.refresh(patient)
+        return patient
+
+    async def assign_doctor(self, patient: PatientProfile, doctor_user_id: uuid.UUID) -> PatientProfile:
+        patient.assignedDoctorId = doctor_user_id
+        await self._session.flush()
+        await self._session.refresh(patient)
+        return patient
+
+    async def list_by_assigned_nurse(self, nurse_user_id: uuid.UUID) -> list[PatientProfile]:
+        result = await self._session.execute(
+            select(PatientProfile).where(PatientProfile.assignedNurseId == nurse_user_id)
+        )
+        return list(result.scalars().all())
+
+    async def list_by_assigned_doctor(self, doctor_user_id: uuid.UUID) -> list[PatientProfile]:
+        result = await self._session.execute(
+            select(PatientProfile).where(PatientProfile.assignedDoctorId == doctor_user_id)
+        )
+        return list(result.scalars().all())
+
+    async def list_unassigned_to_nurse(self) -> list[PatientProfile]:
+        result = await self._session.execute(
+            select(PatientProfile).where(PatientProfile.assignedNurseId.is_(None))
+        )
+        return list(result.scalars().all())

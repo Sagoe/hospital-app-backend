@@ -99,6 +99,13 @@ class AuthService:
             raise AuthError("Invalid MFA code.")
         await self._user_repository.enable_mfa(user)
 
+    async def list_users_by_role(self, role: UserRole) -> list[User]:
+        """Staff directory lookup — used by RECEPTIONIST to find a
+        nurse to assign, and by ADMIN for oversight. Read-only, no
+        audit entry needed since no PHI is touched (just role/email)."""
+        return await self._user_repository.list_by_role(role)
+
+    
 
 def _access_token_minutes() -> int:
     from app.core.config import get_settings
